@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ノストラ君 競艇 予想成績</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%94%AE</text></svg>">
+<style>
+:root{--blue:#2b5fb3;--ink:#222;--sub:#666;--line:#d5d5d5;--head:#f0f2f5;--red:#d0021b;--tab:#eef1f6}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;font-size:13px;line-height:1.5}
+.gh{position:sticky;top:0;z-index:6;background:var(--blue);color:#fff;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.gh h1{margin:0;font-size:15px;font-weight:700;line-height:1.2}
+.gh h1 small{display:block;font-size:10px;font-weight:400;opacity:.85}
+.gh .btns{white-space:nowrap;flex-shrink:0}
+.gh a{color:#fff;font-size:12px;text-decoration:none;border:1px solid rgba(255,255,255,.7);border-radius:4px;padding:3px 8px;margin-left:6px}
+.wrap{padding:10px 10px 40px}
+.note{font-size:11.5px;color:var(--sub);margin:0 0 10px}
+.seg{display:inline-flex;border:1px solid var(--blue);border-radius:4px;overflow:hidden;margin:4px 0 10px}
+.seg button{border:0;background:#fff;color:var(--blue);padding:5px 14px;font-size:13px}
+.seg button.on{background:var(--blue);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.tile{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:#fafbfd}
+.tile b{display:block;font-size:22px;color:var(--blue);line-height:1.2}
+.tile b.bad{color:var(--red)}
+.tile span{font-size:11px;color:var(--sub)}
+h2{font-size:14px;margin:16px 0 6px;padding-left:6px;border-left:4px solid var(--blue)}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;font-size:12px;white-space:nowrap;min-width:100%}
+th{background:var(--head);font-weight:600;font-size:11px;padding:5px 6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#fff}
+th:first-child{background:var(--head)}
+td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+td.good{color:#0b7d3e;font-weight:700}
+td.bad{color:var(--red)}
+.empty{padding:30px;text-align:center;color:var(--sub)}
+.foot{font-size:11px;color:var(--sub);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="gh"><h1><small>🔮 ノストラ君 競艇</small>予想成績</h1><span class="btns"><a href="../index.html">トップ</a><a href="index.html">競艇予想へ</a></span></div>
+<div class="wrap">
+<p class="note">ノストラ君の予想の実績です。予想は<b>締切前に保存</b>し、結果が出た後に書き換えることはありません（朝予想＝当日最初の採点、直前予想＝締切前の最後の採点）。
+集計は結果が確定した後（夜の自動処理後）に反映されます。記録開始: 2026/09/19</p>
+<p class="note"></p>
+<div class="seg" id="seg"><button data-k="直前" class="on">直前予想</button><button data-k="朝">朝予想</button></div>
+<div id="body"></div>
+<p class="foot">「勝点1位」＝そのレースで勝点が最も高い艇を単勝・複勝で1点（100円）買った場合。「食い違い」＝勝点1位の艇が単勝1番人気ではなかったレース（その艇の単勝を買った場合）。
+参考: 2024〜2026年の3年検証では 勝点1位の単勝回収率は約92%、食い違いのレースだけなら約115%（ただし締切時の最終オッズでの計算。売上の小さい市場なので、締切前に見えるオッズで同じ結果になるかをこのページで確かめていきます）。
+更新 2026-09-19 11:27</p>
+</div>
+<script>
+const D = {"朝": {"total": {"R": 0, "勝": 0, "複": 0, "単払": 0.0, "複払": 0.0, "違R": 0, "違勝": 0, "違払": 0.0}, "months": {}, "days": {}}, "直前": {"total": {"R": 0, "勝": 0, "複": 0, "単払": 0.0, "複払": 0.0, "違R": 0, "違勝": 0, "違払": 0.0}, "months": {}, "days": {}}};
+let cur = '直前';
+function pct(a, b){ return b ? (a / b * 100).toFixed(1) + '%' : '-'; }
+function ret(pay, n){ return n ? (pay / n).toFixed(1) + '%' : '-'; }
+function cls(pay, n){ if(!n) return ''; return pay / n >= 100 ? 'good' : 'bad'; }
+function row(label, x){
+  return '<tr><td>' + label + '</td><td>' + x.R + '</td><td>' + x.勝 + '</td><td>' + pct(x.勝, x.R) +
+    '</td><td>' + x.複 + '</td><td>' + pct(x.複, x.R) +
+    '</td><td class="' + cls(x.単払, x.R) + '">' + ret(x.単払, x.R) + '</td><td class="' + cls(x.複払, x.R) + '">' + ret(x.複払, x.R) +
+    '</td><td>' + x['違R'] + '</td><td>' + pct(x['違勝'], x['違R']) + '</td><td class="' + cls(x['違払'], x['違R']) + '">' + ret(x['違払'], x['違R']) + '</td></tr>';
+}
+const HEAD = '<tr><th></th><th>対象R</th><th>1着</th><th>勝率</th><th>2着内</th><th>2着内率</th><th>単回収</th><th>複回収</th><th>食い違いR</th><th>同 的中率</th><th>同 単回収</th></tr>';
+function render(){
+  const S = D[cur];
+  const el = document.getElementById('body');
+  if(!S || !S.total || !S.total.R){ el.innerHTML = '<div class="empty">まだ結果の出たレースがありません。<br>結果は夜の自動処理の後に反映されます。</div>'; return; }
+  const t = S.total;
+  let h = '<div class="tiles">' +
+    '<div class="tile"><b>' + pct(t.勝, t.R) + '</b><span>勝点1位の勝率（' + t.勝 + '/' + t.R + '）</span></div>' +
+    '<div class="tile"><b>' + pct(t.複, t.R) + '</b><span>勝点1位の2着内率（' + t.複 + '/' + t.R + '）</span></div>' +
+    '<div class="tile"><b class="' + cls(t.単払, t.R) + '">' + ret(t.単払, t.R) + '</b><span>勝点1位 単勝回収率</span></div>' +
+    '<div class="tile"><b class="' + cls(t.複払, t.R) + '">' + ret(t.複払, t.R) + '</b><span>勝点1位 複勝回収率</span></div>' +
+    '<div class="tile"><b>' + pct(t['違勝'], t['違R']) + '</b><span>食い違いの的中率（' + t['違勝'] + '/' + t['違R'] + '）</span></div>' +
+    '<div class="tile"><b class="' + cls(t['違払'], t['違R']) + '">' + ret(t['違払'], t['違R']) + '</b><span>食い違いの単勝回収率</span></div></div>';
+  h += '<h2>月別成績</h2><div class="tbl"><table>' + HEAD;
+  Object.keys(S.months).reverse().forEach(m => h += row(m, S.months[m]));
+  h += '</table></div>';
+  h += '<h2>日別成績（直近30日）</h2><div class="tbl"><table>' + HEAD;
+  Object.keys(S.days).reverse().slice(0, 30).forEach(d => h += row(d.slice(4,6) + '/' + d.slice(6), S.days[d]));
+  h += '</table></div>';
+  el.innerHTML = h;
+}
+document.querySelectorAll('#seg button').forEach(b => b.onclick = () => {
+  cur = b.dataset.k;
+  document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+render();
+</script>
+</body>
+</html>
