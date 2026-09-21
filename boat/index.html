@@ -204,7 +204,7 @@ function render(){
   });
   const n = document.createElement('div');
   n.className = 'note';
-  n.textContent = '勝点・複点＝モデルの「1着になる確率」「2着以内に入る確率」(%)。市場＝単勝オッズから逆算した勝つ確率。差＝勝点−市場（+5以上 割安 / −5以下 割高）。★食い違い＝モデルの1位と単勝1番人気が違うレース（2024〜2026年の検証ではこのレースの単勝だけ回収率115%。ただし競艇の単勝は売上がとても小さく、締切前に見えるオッズで本当に買えるかは検証中）。翌日はオッズが出るまで市場・差は「-」。参考情報としてご利用ください。';
+  n.textContent = '勝点・複点＝モデルの「1着になる確率」「2着以内に入る確率」(%)。市場＝単勝オッズから逆算した勝つ確率。差＝勝点−市場（+5以上 割安 / −5以下 割高）。★食い違い＝モデルの1位と単勝1番人気が違うレース。翌日はオッズが出るまで市場・差は「-」。参考情報としてご利用ください。';
   main.appendChild(n);
 }
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { sort = b.dataset.s; try { localStorage.setItem('sort', sort); } catch(e) {} render(); });
